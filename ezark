@@ -1,0 +1,109 @@
+#!/bin/sh
+
+exit_0()
+{
+  exit 0
+}
+
+get_help()
+{
+  help="Usage: ezark\nOptions:\n--help, -help, -h, or help displays this information.\n--version, -version, -v, or version displays ezark version information.\n\nezark does not support any options other than those shown here."
+}
+
+get_version()
+{
+  version="ezark version 0.1"
+}
+
+list()
+{
+  if [ -f "$1" ]; then
+    case $1 in
+      *.tar.gz | *.tgz | *.tar.bz2 | *.tbz2 | *.tar.xz | *.tar.zst | *.tar) tar -tvf "$1";;
+      *.rar) rar l "$1";;
+      *.zip) zip -sf "$1";;
+      # p7zip-full package
+      *.7z) 7z l "$1";;
+      *) echo "Listing files in archive failed. $1 is not a supported file type.";;
+    esac
+  else
+    echo "$1 is not a valid file."
+  fi
+}
+
+extract()
+{
+  if [ -f "$1" ]; then
+    case "$1" in
+      *.tar.gz | *.tgz) tar xzf "$1";;
+      *.tar.bz2 | *.tbz2) tar xjf "$1";;
+      *.tar.xz) tar xJf "$1";;
+      *.tar) tar xf "$1";;
+      *.gz) gunzip "$1";;
+      *.bz2) bunzip2 "$1";;
+      *.xz) unxz "$1";;
+      *.rar) unrar x "$1";;
+      *.zip) unzip "$1";;
+      # p7zip-full package
+      *.7z) 7z x "$1";;
+      *.zst) unzstd "$1";;
+      *) echo "Extract operation failed. $1 is not a supported file type.";;
+    esac
+  else
+    echo "$1 is not a valid file."
+  fi
+}
+
+create()
+{
+  if [ -d "$2" ]; then
+  echo entering if block
+    case "$1" in
+      *.tar.gz | *.tgz) tar czfk "$1" "$2";;
+      *.tar.bz2 | *.tbz2) tar cjfk "$1" "$2";;
+      *.tar.xz) tar cJfk "$1" "$2";;
+      *.tar) tar cf "$1" "$2";;
+      *.rar) rar a "$1" "$2";;
+      *.zip) zip -r "$1" "$2";;
+      # p7zip-full package
+      *.7z) 7z a "$1" "$2";;
+      *) echo "Create operation failed. $1 is not a supported file type or $2 is not a valid directory.";;
+    esac
+  elif [ -f "$2" ]; then
+  echo entering elif block
+    case "$1" in
+      *.gz | *.tgz) gzip -k "$2";;
+      *.bz2 | *.tbz2) bzip2 -k "$2";;
+      *.xz) xz -k "$2";;
+      *.tar) tar cf "$1" "$2";;
+      *.rar) rar a "$1" "$2";;
+      *.zip) zip "$1" "$2";;
+      # p7zip-full package
+      *.7z) 7z a "$1" "$2";;
+      *.zst) zstd "$2";;
+      *) echo "Create operation failed. $1 is not a supported file type.";;
+    esac
+  else
+    echo "$2 is not a valid directory or file."
+  fi
+}
+
+case "$1" in
+  'extract' | 'ex')
+    extract "$2";;
+  'create' | 'cr')
+    create "$2" "$3";;
+  'list' | 'ls')
+    list "$2";;
+  "--version" | "-version" | "version" | "-v")
+    get_version
+    echo "$version"
+    exit_0;;
+  "--help" | "-help" | "help" |"-h")
+    get_help
+    echo "$help"
+    exit_0;;
+  *)
+    printf "ezark: invalid option\nuse 'ezark --help' to show valid options.\n"
+    exit_0
+esac
